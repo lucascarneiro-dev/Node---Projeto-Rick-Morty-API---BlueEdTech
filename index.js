@@ -2,26 +2,32 @@ const express = require("express");
 const mongodb = require("mongodb");
 const ObjectId = mongodb.ObjectId;
 require("dotenv").config();
+require('express-async-errors');
+
 
 (async () => {
-  const dbUser = process.env.DB_USER;
-  const dbPassword = process.env.DB_PASSWORD
-  const dbName = process.env.DB_NAME;
-  const dbChar = process.env.DB_CHAR;
+	const dbUser = process.env.DB_USER;
+	const dbPassword = process.env.DB_PASSWORD;
+	const dbName = process.env.DB_NAME;
+	const dbChar = process.env.DB_CHAR;
 
+	const app = express();
+	app.use(express.json());
 
-  const app = express();
-  app.use(express.json());
-  const port = process.env.PORT || 3000;
-  const connectionString = `mongodb+srv://${dbUser}:${dbPassword}@cluster0.${dbChar}.mongodb.net/${dbName}?retryWrites=true&w=majority`;
+	const port = process.env.PORT || 3000;
+	const connectionString = `mongodb+srv://${dbUser}:${dbPassword}@cluster0.${dbChar}.mongodb.net/${dbName}?retryWrites=true&w=majority`;
 
-  const options = {
-    useUnifiedTopology: true,
-  };
+	const options = {
+		useUnifiedTopology: true,
+	};
 
-  const client = await mongodb.MongoClient.connect(connectionString, options);
+	console.info("Conectando ao MongoDB Atlas...");
 
-	const db = client.db(dbName);
+	const client = await mongodb.MongoClient.connect(connectionString, options);
+
+	console.info("Conexão estabelecida com o MongoDB Atlas!");
+
+	const db = client.db("blue_db");
 	const personagens = db.collection("personagens");
 
 	const getPersonagensValidas = () => personagens.find({}).toArray();
@@ -44,8 +50,9 @@ require("dotenv").config();
 		next();
 	});
 
-	app.get("/", (req, res) => {
-		res.send({ info: "Olá, Blue" });
+	app.get("/",  (req, res) => {
+		const teste = undefined;
+		res.send({ info: "Olá, Blue" + teste.sdas});
 	});
 
 	//[GET] GetAllPersonagens
@@ -59,6 +66,10 @@ require("dotenv").config();
 	app.get("/personagens/:id", async (req, res) => {
 		const id = req.params.id;
 		const personagem = await getPersonagemById(id);
+		if(!personagem){
+			res.status(404).send({error:"O personagem especificado não foi encontrado"})
+			return;
+		}
 		res.send(personagem);
 	});
 
@@ -67,8 +78,8 @@ require("dotenv").config();
 		const objeto = req.body;
 
 		if (!objeto || !objeto.nome || !objeto.imagemUrl) {
-			res.send(
-				"Requisição inválida, certifique-se que tenha os campos nome e imagemUrl"
+			res.status(400).send(
+				{error: "Personagem inválido, certifique-se que tenha os campos nome e imagemUrl"}
 			);
 			return;
 		}
@@ -78,11 +89,11 @@ require("dotenv").config();
 		console.log(result);
 		//Se ocorrer algum erro com o mongoDb esse if vai detectar
 		if (result.acknowledged == false) {
-			res.send("Ocorreu um erro");
+			res.status(500).send({error:"Ocorreu um erro"});
 			return;
 		}
 
-		res.send(objeto);
+		res.status(201).send(objeto);
 	});
 
 	//[PUT] Atualizar personagem
@@ -91,8 +102,8 @@ require("dotenv").config();
 		const objeto = req.body;
 
 		if (!objeto || !objeto.nome || !objeto.imagemUrl) {
-			res.send(
-				"Requisição inválida, certifique-se que tenha os campos nome e imagemUrl"
+			res.status(400);send(
+				{error: "Requisição inválida, certifique-se que tenha os campos nome e imagemUrl"}
 			);
 			return;
 		}
@@ -102,7 +113,7 @@ require("dotenv").config();
 		});
 
 		if (quantidadePersonagens !== 1) {
-			res.send("Personagem não encontrado");
+			res.status(404).send({error:"Personagem não encontrado"});
 			return;
 		}
 
@@ -116,8 +127,8 @@ require("dotenv").config();
 		);
 		//console.log(result);
 		//Se acontecer algum erro no MongoDb, cai na seguinte valiadação
-		if (result.modifiedCount !== 1) {
-			res.send("Ocorreu um erro ao atualizar o personagem");
+		if (result.acknowledged == "undefined") {
+			res.status(500).send({error:"Ocorreu um erro ao atualizar o personagem"});
 			return;
 		}
 		res.send(await getPersonagemById(id));
@@ -132,21 +143,36 @@ require("dotenv").config();
 		});
 		//Checar se existe o personagem solicitado
 		if (quantidadePersonagens !== 1) {
-			res.send("Personagem não encontrao");
+			res.status(404).send({error:"Personagem não encontrao"});
 			return;
 		}
 		//Deletar personagem
 		const result = await personagens.deleteOne({
 			_id: ObjectId(id),
 		});
-		//Se não con
+		//Se não consegue deletar, erro do Mongo
 		if (result.deletedCount !== 1) {
-			res.send("Ocorreu um erro ao remover o personagem");
+			res.status(500).send({error: "Ocorreu um erro ao remover o personagem"});
 			return;
 		}
 
-		res.send("Personagem removido com sucesso!");
+		res.send(204);
 	});
+
+	//Middleware -> verifica endpoints
+	app.all("*",function(req,res){
+		res.status(404).send({message: "Endpoint was not found"})
+	})
+
+	//Middleware -> Tratamento de erros
+	app.use((error,req,res,next)=>{
+		res.status(error.status || 500).send({
+			error:{
+				status:error.status || 500,
+				message: error.message || "Internal Server Error",
+			}
+		})
+	})
 
 	app.listen(port, () => {
 		console.info(`App rodando em http://localhost:${port}`);
