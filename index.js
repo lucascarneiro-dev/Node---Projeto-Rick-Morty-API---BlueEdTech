@@ -6,7 +6,7 @@ require("express-async-errors");
 
 //Requires de endpoints
 const home = require("./components/home/home");
-]
+
 
 (async () => {
   const dbUser = process.env.DB_USER;
