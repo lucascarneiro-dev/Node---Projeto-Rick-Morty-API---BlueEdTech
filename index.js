@@ -54,7 +54,7 @@ const home = require("./components/home/home");
   });
 
   //Criando rota home
-  // app.use("/home",home);
+  app.use("/home",home);
 
   // app.get("/", async (req, res) => {
   //  const teste = undefined;
