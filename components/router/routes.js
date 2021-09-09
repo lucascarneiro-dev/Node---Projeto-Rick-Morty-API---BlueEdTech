@@ -1,5 +1,4 @@
 const router = require("express").Router();
-const cors = require("cors");
 const {
   listPersonagemByID,
   listPersonagens,
@@ -8,6 +7,7 @@ const {
   createPersonagem,
   editPersonagem,
 } = require("../database/data-handler");
+const cors = require("cors");
 
 router.use(cors());
 router.options("*",cors())

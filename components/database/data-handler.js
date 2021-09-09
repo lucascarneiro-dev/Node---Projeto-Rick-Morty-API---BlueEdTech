@@ -8,7 +8,7 @@ const home = async (req, res) => {
 };
 
 //Function to list all personagens
-const listPersonagens = async (req, res) => {
+async function  listPersonagens(req, res) {
   const listAll = await personagem.find({}).toArray();
   listAll
     ? res.status(200).json(listAll)
@@ -22,10 +22,9 @@ const searchPersonagemById = (id) => personagem.findOne({ _id: ObjectId(id) });
 const listPersonagemById = async (req, res) => {
   const id = req.params.id;
   const listById = await searchPersonagemById(id);
-  listById
-    ? res.status(200).json(listById)
-    : res.status(404).json({ error: "Nenhum personagem encontrado" });
-  dbclose();
+  if(!listById){
+  res.status(404).json({ error: "Nenhum personagem encontrado" });
+  return;}
   res.json(listById);
 };
 
@@ -47,7 +46,7 @@ const editPersonagem = async (req, res) => {
     return;
   }
 
-  const editById = await personagem.findOneAndUpdate(
+  const editById = await personagem.UpdateOne(
     {
       _id: ObjectId(id),
     },
