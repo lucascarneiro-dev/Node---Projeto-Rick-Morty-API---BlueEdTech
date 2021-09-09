@@ -24,7 +24,8 @@ const listPersonagemById = async (req, res) => {
   const listById = await searchPersonagemById(id);
   if(!listById){
   res.status(404).json({ error: "Nenhum personagem encontrado" });
-  return;}
+  return;
+}
   res.json(listById);
 };
 
@@ -115,4 +116,5 @@ module.exports = {
   listPersonagemById,
   editPersonagem,
   createPersonagem,
+  deletePersonagem
 };

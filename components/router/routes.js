@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const {
-  listPersonagemByID,
+  listPersonagemById,
   listPersonagens,
   home,
   deletePersonagem,
@@ -9,12 +9,13 @@ const {
 } = require("../database/data-handler");
 const cors = require("cors");
 
+
 router.use(cors());
 router.options("*",cors())
 
 router.get("/home", home);
 router.get("/personagens/", listPersonagens);
-router.get("/personagens/:id", listPersonagemByID);
+router.get("/personagens/:id", listPersonagemById);
 router.delete("/personagens/:id", deletePersonagem);
 router.post("/personagens", createPersonagem);
 router.put("/personagens/:id", editPersonagem);
