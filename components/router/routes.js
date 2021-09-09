@@ -14,10 +14,10 @@ router.use(cors());
 router.options("*",cors())
 
 router.get("/home", home);
-router.get("/", listPersonagens);
-router.get("/:id", listPersonagemById);
-router.delete("/:id", deletePersonagem);
-router.post("/", createPersonagem);
-router.put("/:id", editPersonagem);
+router.get("/all", listPersonagens);
+router.get("/readbyid/:id", listPersonagemById);
+router.delete("/delete/:id", deletePersonagem);
+router.post("/create", createPersonagem);
+router.put("/edit/:id", editPersonagem);
 
 module.exports = router;
