@@ -36,6 +36,7 @@ const editPersonagem = async (req, res) => {
 
   if (!object) {
     res.status(500).json({ message: "Requisição inválida" });
+    return;
   }
 
   const quantitPersonagens = await personagem.countDocuments({
@@ -47,7 +48,7 @@ const editPersonagem = async (req, res) => {
     return;
   }
 
-  const editById = await personagem.UpdateOne(
+  const editById = await personagem.updateOne(
     {
       _id: ObjectId(id),
     },
